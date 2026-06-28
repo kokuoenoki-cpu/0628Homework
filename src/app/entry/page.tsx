@@ -8,8 +8,7 @@ import { LS_KEYS } from '@/lib/constants';
 import KpiEntryForm from '@/components/kpi/KpiEntryForm';
 import { toThaiMonth, formatByUnit } from '@/lib/utils';
 import { KPI_CATEGORY_LABELS } from '@/types/finance';
-import { seedAll } from '@/lib/seedData';
-import { seedExtraData } from '@/lib/seedDataExtra';
+import { replaceWithImportedData } from '@/lib/seedDataImport';
 
 export default function EntryPage() {
   const [kpiEntries] = useLocalStorage<KpiEntry[]>(LS_KEYS.KPI_ENTRIES, []);
@@ -18,8 +17,7 @@ export default function EntryPage() {
   const [seeded, setSeeded] = useState(false);
 
   const handleSeed = () => {
-    seedAll();
-    seedExtraData();
+    replaceWithImportedData();
     setSeeded(true);
     window.location.reload();
   };

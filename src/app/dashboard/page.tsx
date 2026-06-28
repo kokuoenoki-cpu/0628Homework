@@ -11,8 +11,7 @@ import AlertBanner        from '@/components/dashboard/AlertBanner';
 import FilterBar          from '@/components/dashboard/FilterBar';
 import KpiSummaryCard     from '@/components/dashboard/KpiSummaryCard';
 import { toThaiMonth }    from '@/lib/utils';
-import { seedAll }        from '@/lib/seedData';
-import { seedExtraData }  from '@/lib/seedDataExtra';
+import { replaceWithImportedData } from '@/lib/seedDataImport';
 
 const BudgetAttainmentChart = dynamic(() => import('@/components/charts/BudgetAttainmentChart'), { ssr: false });
 const TrendLineChart        = dynamic(() => import('@/components/charts/TrendLineChart'),        { ssr: false });
@@ -81,7 +80,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3 flex-wrap justify-center">
           <button
-            onClick={() => { seedAll(); seedExtraData(); window.location.reload(); }}
+            onClick={() => { replaceWithImportedData(); window.location.reload(); }}
             className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/25"
           >
             โหลดข้อมูลตัวอย่าง
