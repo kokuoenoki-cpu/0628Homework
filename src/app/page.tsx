@@ -1,65 +1,125 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { DollarSign, TrendingUp, TrendingDown, Percent, Plus } from 'lucide-react';
+import { useFinanceData } from '@/hooks/useFinanceData';
+import { formatCurrency, getMonthLabel, getCurrentMonth } from '@/lib/utils';
+import KPICard from '@/components/ui/KPICard';
+import Modal from '@/components/ui/Modal';
+import TransactionForm from '@/components/forms/TransactionForm';
+import TransactionList from '@/components/TransactionList';
+
+const RevenueChart = dynamic(() => import('@/components/charts/RevenueChart'), { ssr: false });
+const CategoryPieChart = dynamic(() => import('@/components/charts/CategoryPieChart'), { ssr: false });
+
+export default function DashboardPage() {
+  const {
+    recentTransactions,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    getSummary,
+    getMonthlyData,
+    getCategoryBreakdown,
+  } = useFinanceData();
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const currentMonth = getCurrentMonth();
+  const summary = getSummary(currentMonth);
+  const monthlyData = getMonthlyData(6);
+  const categoryBreakdown = getCategoryBreakdown(currentMonth);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-400">{getMonthLabel(currentMonth)}</p>
+          <h2 className="text-xl font-bold text-gray-900">Financial Overview</h2>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/25"
+        >
+          <Plus className="w-4 h-4" />
+          Add Transaction
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <KPICard
+          title="Total Income"
+          value={formatCurrency(summary.totalIncome)}
+          icon={TrendingUp}
+          iconColor="text-indigo-600"
+          iconBg="bg-indigo-50"
+          valueColor="text-indigo-700"
+          subtitle={getMonthLabel(currentMonth)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <KPICard
+          title="Total Expenses"
+          value={formatCurrency(summary.totalExpenses)}
+          icon={TrendingDown}
+          iconColor="text-rose-600"
+          iconBg="bg-rose-50"
+          valueColor="text-rose-700"
+          subtitle={getMonthLabel(currentMonth)}
+        />
+        <KPICard
+          title="Net Income"
+          value={formatCurrency(summary.netIncome)}
+          icon={DollarSign}
+          iconColor={summary.netIncome >= 0 ? 'text-emerald-600' : 'text-rose-600'}
+          iconBg={summary.netIncome >= 0 ? 'bg-emerald-50' : 'bg-rose-50'}
+          valueColor={summary.netIncome >= 0 ? 'text-emerald-700' : 'text-rose-700'}
+          subtitle="Income minus expenses"
+        />
+        <KPICard
+          title="Savings Rate"
+          value={`${summary.savingsRate.toFixed(1)}%`}
+          icon={Percent}
+          iconColor={summary.savingsRate >= 20 ? 'text-emerald-600' : summary.savingsRate >= 0 ? 'text-amber-600' : 'text-rose-600'}
+          iconBg={summary.savingsRate >= 20 ? 'bg-emerald-50' : summary.savingsRate >= 0 ? 'bg-amber-50' : 'bg-rose-50'}
+          valueColor={summary.savingsRate >= 20 ? 'text-emerald-700' : summary.savingsRate >= 0 ? 'text-amber-700' : 'text-rose-700'}
+          subtitle="Net / Income ratio"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
+          <RevenueChart data={monthlyData} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
+        <div>
+          <CategoryPieChart data={categoryBreakdown} />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Recent Transactions</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Latest 8 entries</p>
+          </div>
+          <a href="/transactions" className="text-xs text-indigo-500 hover:text-indigo-700 font-medium">
+            View all →
           </a>
         </div>
-      </main>
+        <TransactionList
+          transactions={recentTransactions}
+          onUpdate={updateTransaction}
+          onDelete={deleteTransaction}
+        />
+      </div>
+
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add Transaction">
+        <TransactionForm
+          onSubmit={(data) => {
+            addTransaction(data);
+            setShowAddModal(false);
+          }}
+          onCancel={() => setShowAddModal(false)}
+        />
+      </Modal>
     </div>
   );
 }
